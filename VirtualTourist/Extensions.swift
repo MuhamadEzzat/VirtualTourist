@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 extension UIImageView{
-    func downloadImage(url: String){
+    func downloadImage(url: String, completion: @escaping (Bool, Error?)->Void){
         print(url, "sopfsdfsdF")
         if let imageurl = URL(string: url){
             let task = URLSession.shared.dataTask(with: imageurl) { data, response, error in
@@ -19,7 +19,7 @@ extension UIImageView{
                 DispatchQueue.main.async {
                     if let img = UIImage(data: data){
                         self.image = img
-                        print("ergrg")
+                        completion(true, nil)
                     }else{
                         self.image = UIImage(named: "VirtualTourist_180")
                     }

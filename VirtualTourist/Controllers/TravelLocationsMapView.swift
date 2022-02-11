@@ -7,86 +7,53 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
 
     @IBOutlet weak var mabview: MKMapView!
     
+    var dataController:DataController!
+    var pins = PinCoreData.getData().0
+    let vtclient = VTClient()
     var anotationsArr : [CLLocationCoordinate2D]? = []
     var photos : _Data?
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         mabview.delegate = self
         
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(gestureRecognizer:)))
                                                              
-        gestureRecognizer.minimumPressDuration = 2.0
         gestureRecognizer.delegate = self
         mabview.addGestureRecognizer(gestureRecognizer)
+            
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        print(mabview.centerCoordinate, "SSSSS")
+        fillMapview()
     }
     
     func fillMapview(){
-        getCoordinate(addressString: "" ) { coordinates, error in
+        
+        var annotations = [MKPointAnnotation]()
+        
+        for i in pins {
             
-          
-            var annotations = [MKPointAnnotation]()
-            
-            let lat = CLLocationDegrees(coordinates.latitude)
-            let long = CLLocationDegrees(coordinates.longitude)
-            
-            
+            let lat = CLLocationDegrees(i.lat)
+            let long = CLLocationDegrees(i.lng)
             
             let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
-            
-        
-            
             let annotation = MKPointAnnotation()
+            
             annotation.coordinate = coordinate
-            annotation.title = ""
-            annotation.subtitle = "mediaURL"
             
             annotations.append(annotation)
-            
-            self.mabview.addAnnotations(annotations)
         }
-    }
-    
-    
-    
-    func getCoordinate( addressString : String,
-            completionHandler: @escaping(CLLocationCoordinate2D, NSError?) -> Void ) {
-        let geocoder = CLGeocoder()
         
-        geocoder.geocodeAddressString(addressString) { (placemarks, error) in
-            if error == nil {
-                
-                if let placemark = placemarks?[0] {
-                    let location = placemark.location!
-                        
-                    completionHandler(location.coordinate, nil)
-                    self.mabview.setRegion(MKCoordinateRegion(center: location.coordinate, span: self.mabview.region.span), animated: true)
-                }
-            }else{
-                let alertController = UIAlertController(title: "Alert!", message: "Location Place is not found!", preferredStyle: .alert)
-
-               let okAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.default) {
-                    UIAlertAction in
-                    NSLog("OK Pressed")
-                }
-                
-                alertController.addAction(okAction)
-
-                self.present(alertController, animated: true, completion: nil)
-
-            }
-                
-            completionHandler(kCLLocationCoordinate2DInvalid, error as NSError?)
-            
-        }
+        self.mabview.addAnnotations(annotations)
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
@@ -102,6 +69,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
             pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
         }
         else {
+            
             pinView!.annotation = annotation
         }
         
@@ -109,6 +77,10 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     }
 
     @objc func longPress(gestureRecognizer:UIGestureRecognizer){
+        if gestureRecognizer.state != .began{
+            return
+        }
+        
         let touchPoint = gestureRecognizer.location(in: mabview)
         let newCoordinates = mabview.convert(touchPoint, toCoordinateFrom: mabview)
         let annotation = MKPointAnnotation()
@@ -116,7 +88,10 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         self.anotationsArr?.append(annotation.coordinate)
         mabview.addAnnotation(annotation)
         
-        getImages(latitude: mabview.centerCoordinate.latitude, Longitude: mabview.centerCoordinate.longitude, completion: { bool, error, photos, images in
+        //Save to Coredata
+        PinCoreData.addData(lat: annotation.coordinate.latitude, long: annotation.coordinate.longitude)
+        
+        vtclient.getImages(latitude: mabview.centerCoordinate.latitude, Longitude: mabview.centerCoordinate.longitude, completion: { bool, error, photos, images in
             guard let photos = photos else{
                 return
             }

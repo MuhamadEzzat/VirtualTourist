@@ -19,8 +19,11 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     var photosArr : _Data?
     var images : [UIImage]?
+    var pinsarr = [Pin]()
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.newcollectionBtn.alpha = 0.5
+        self.newcollectionBtn.isEnabled = false
         mapview.delegate = self
         let initialLocation = CLLocation(latitude: lat, longitude: lng)
         centerMapOnLocation(location: initialLocation)
@@ -91,7 +94,12 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCell
         
 
-        cell.img.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_o ?? "")
+        cell.img.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_o ?? "") { bool, error in
+            if bool == true{
+                self.newcollectionBtn.alpha = 1
+                self.newcollectionBtn.isEnabled = true
+            }
+        }
         
         return cell
     }

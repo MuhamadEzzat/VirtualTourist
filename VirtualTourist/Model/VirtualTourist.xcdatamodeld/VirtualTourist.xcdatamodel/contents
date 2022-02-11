@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Photo" representedClassName="Photo" syncable="YES" codeGenerationType="class">
+    <entity name="Photo" representedClassName="Photo" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <attribute name="data" optional="YES" attributeType="Transformable"/>
         <attribute name="urlString" optional="YES" attributeType="String"/>
         <relationship name="pin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="photos" inverseEntity="Pin"/>
     </entity>
-    <entity name="Pin" representedClassName="Pin" syncable="YES" codeGenerationType="class">
-        <attribute name="lat" optional="YES" attributeType="String"/>
-        <attribute name="long" optional="YES" attributeType="String"/>
+    <entity name="Pin" representedClassName="Pin" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <attribute name="lat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="lng" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Photo" inverseName="pin" inverseEntity="Photo"/>
     </entity>
     <elements>
-        <element name="Pin" positionX="-305.0515747070312" positionY="14.66366577148438" width="128" height="88"/>
-        <element name="Photo" positionX="-37.528564453125" positionY="28.07559204101562" width="128" height="73"/>
+        <element name="Photo" positionX="-37.528564453125" positionY="28.07559204101562" width="128" height="74"/>
+        <element name="Pin" positionX="-305.0515747070312" positionY="14.66366577148438" width="128" height="74"/>
     </elements>
 </model>
