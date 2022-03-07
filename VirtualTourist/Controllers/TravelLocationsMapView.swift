@@ -14,16 +14,18 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     @IBOutlet weak var mabview: MKMapView!
     
     var dataController:DataController!
-    var pins = PinCoreData.getData().0
+    var pins : [Pin] = []
     let vtclient = VTClient()
     var anotationsArr : [CLLocationCoordinate2D]? = []
     var photos : _Data?
+    var pin : Pin!
+    var cachePhotos : [Photo]! = []
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         mabview.delegate = self
-        
+        print(dataController.viewContext, "dsfsdfs")
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(gestureRecognizer:)))
                                                              
         gestureRecognizer.delegate = self
@@ -40,17 +42,23 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         
         var annotations = [MKPointAnnotation]()
         
-        for i in pins {
-            
-            let lat = CLLocationDegrees(i.lat)
-            let long = CLLocationDegrees(i.lng)
-            
-            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
-            let annotation = MKPointAnnotation()
-            
-            annotation.coordinate = coordinate
-            
-            annotations.append(annotation)
+        let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "lat", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        if let result = try? dataController.viewContext.fetch(fetchRequest){
+            pins = result
+            for i in result {
+                let lat = CLLocationDegrees(i.lat)
+                let long = CLLocationDegrees(i.lng)
+                
+                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                let annotation = MKPointAnnotation()
+                
+                annotation.coordinate = coordinate
+                
+                annotations.append(annotation)
+            }
         }
         
         self.mabview.addAnnotations(annotations)
@@ -89,23 +97,60 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         mabview.addAnnotation(annotation)
         
         //Save to Coredata
-        PinCoreData.addData(lat: annotation.coordinate.latitude, long: annotation.coordinate.longitude)
+        addPintoCache(latitude: annotation.coordinate.latitude, Longitude: annotation.coordinate.longitude)
         
-        vtclient.getImages(latitude: mabview.centerCoordinate.latitude, Longitude: mabview.centerCoordinate.longitude, completion: { bool, error, photos, images in
+        vtclient.getImages(latitude: mabview.centerCoordinate.latitude, Longitude: mabview.centerCoordinate.longitude, page: 1, completion: { bool, error, photos, images in
             guard let photos = photos else{
                 return
             }
-            
             self.photos = photos
+            self.addImages(photos: photos)
         })
     }
     
+    func addImages(photos: _Data){
+        if let p = self.photos?.photos.photo{
+            let image = Photo(context: self.dataController.viewContext)
+            for i in p{
+                image.id = i.id
+                image.owner = i.owner
+                image.title = i.title
+                image.url_o = i.url_o
+                image.pin = self.pin
+                
+                self.pin.addToPhotos(image)
+                try? self.dataController.viewContext.save()
+                self.cachePhotos.insert(image, at: 0)
+
+            }
+        }
+        print(self.cachePhotos, "safewfW")
+    }
+    
+    func addPintoCache(latitude: CLLocationDegrees, Longitude: CLLocationDegrees){
+        let pin = Pin(context: dataController.viewContext)
+        pin.lat = latitude
+        pin.lng = Longitude
+        self.pin = pin
+        try? dataController.viewContext.save()
+        pins.insert(pin, at: 0)
+    }
+    
+    func pin(at indexPath: IndexPath) -> Pin {
+        return pins[indexPath.row]
+    }
+    
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print(mabview.centerCoordinate.latitude, "SSSSS")
         let nextStoryboard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = nextStoryboard.instantiateViewController(withIdentifier: "PhotoAlbumView") as! PhotoAlbumView
-//        self.performSegue(withIdentifier: "openPhotos", sender: self)
+
         vc.photosArr = self.photos
+        vc.lat = view.annotation?.coordinate.latitude ?? 0.0
+        vc.lng = view.annotation?.coordinate.longitude ?? 0.0
+        vc.pin = pins.last
+        
+        vc.dataController = dataController
+        
         self.navigationController?.pushViewController(vc, animated: true)
         
     }

@@ -12,8 +12,8 @@ class VTClient{
         
     init() {}
     
-    func getImages(latitude: Double, Longitude: Double ,completion: @escaping (Bool, Error?, _Data?, [UIImage]?) -> Void){
-        let request = URLRequest(url: URL(string: "https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=7499f896ac0201eb6f8be76d0fae523d&lat=\(latitude)&lon=\(Longitude)&format=json&nojsoncallback=1&extras=url_o&per_page=20")!)
+    func getImages(latitude: Double, Longitude: Double, page:Int,completion: @escaping (Bool, Error?, _Data?, [UIImage]?) -> Void){
+        let request = URLRequest(url: URL(string: "https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=7499f896ac0201eb6f8be76d0fae523d&lat=\(latitude)&lon=\(Longitude)&format=json&nojsoncallback=1&extras=url_o&per_page=20&page=\(page)")!)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
           if error != nil { // Handle error...
@@ -38,8 +38,26 @@ class VTClient{
         }
         task.resume()
     }
+    
+    func downloadImage(url: String, image: UIImageView, completion: @escaping (Bool, Error?, UIImageView)->Void){
+        print(url, "sopfsdfsdF")
+        if let imageurl = URL(string: url){
+            let task = URLSession.shared.dataTask(with: imageurl) { data, response, error in
+                guard let data = data else{
+                    return
+            }
+                DispatchQueue.main.async {
+                    if let img = UIImage(data: data){
+                        image.image = img
+                        completion(true, nil, image)
+                    }else{
+                        image.image = UIImage(named: "VirtualTourist_180")
+                        completion(false, nil, image)
+                    }
+                }
+            }
+            task.resume()
+        }
+    }
 
 }
-
-//Image link
-//https://www.flickr.com/photos/148268138@N05/49203076068/in/00-DSC_8346/

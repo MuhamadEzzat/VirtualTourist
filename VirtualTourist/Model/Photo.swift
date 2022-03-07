@@ -13,6 +13,7 @@ struct _Data:Codable{
 
 struct Photos:Codable{
     var photo: [PhotoDetails]
+    var pages : Int
 }
 
 struct PhotoDetails:Codable{
