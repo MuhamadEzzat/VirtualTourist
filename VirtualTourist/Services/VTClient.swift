@@ -39,8 +39,8 @@ class VTClient{
         task.resume()
     }
     
-    func downloadImage(url: String, image: UIImageView, completion: @escaping (Bool, Error?, UIImageView)->Void){
-        print(url, "sopfsdfsdF")
+    func downloadImage(url: String, image: UIImageView?, completion: @escaping (Bool, Error?, UIImageView)->Void){
+        
         if let imageurl = URL(string: url){
             let task = URLSession.shared.dataTask(with: imageurl) { data, response, error in
                 guard let data = data else{
@@ -48,11 +48,11 @@ class VTClient{
             }
                 DispatchQueue.main.async {
                     if let img = UIImage(data: data){
-                        image.image = img
-                        completion(true, nil, image)
+                        image?.image = img
+                        completion(true, nil, image!)
                     }else{
-                        image.image = UIImage(named: "VirtualTourist_180")
-                        completion(false, nil, image)
+                        image?.image = UIImage(named: "VirtualTourist_180")
+                        completion(false, nil, image!)
                     }
                 }
             }

@@ -35,6 +35,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         fillMapview()
     }
     
@@ -104,27 +105,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
                 return
             }
             self.photos = photos
-            self.addImages(photos: photos)
         })
-    }
-    
-    func addImages(photos: _Data){
-        if let p = self.photos?.photos.photo{
-            let image = Photo(context: self.dataController.viewContext)
-            for i in p{
-                image.id = i.id
-                image.owner = i.owner
-                image.title = i.title
-                image.url_o = i.url_o
-                image.pin = self.pin
-                
-                self.pin.addToPhotos(image)
-                try? self.dataController.viewContext.save()
-                self.cachePhotos.insert(image, at: 0)
-
-            }
-        }
-        print(self.cachePhotos, "safewfW")
     }
     
     func addPintoCache(latitude: CLLocationDegrees, Longitude: CLLocationDegrees){
@@ -136,8 +117,11 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         pins.insert(pin, at: 0)
     }
     
-    func pin(at indexPath: IndexPath) -> Pin {
-        return pins[indexPath.row]
+    func pin(lat : Double, lng: Double) -> Pin {
+        let pin = Pin(context: dataController.viewContext)
+        pin.lat = lat
+        pin.lng = lng
+        return pin
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
@@ -147,13 +131,14 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         vc.photosArr = self.photos
         vc.lat = view.annotation?.coordinate.latitude ?? 0.0
         vc.lng = view.annotation?.coordinate.longitude ?? 0.0
-        vc.pin = pins.last
+        vc.pin = pin(lat: view.annotation?.coordinate.latitude ?? 0.0, lng: view.annotation?.coordinate.longitude ?? 0.0)
         
         vc.dataController = dataController
         
         self.navigationController?.pushViewController(vc, animated: true)
         
     }
+    
 
 
 }

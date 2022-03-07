@@ -28,7 +28,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print(pin, "dsferfer")
         self.newcollectionBtn.alpha = 0.5
         self.newcollectionBtn.isEnabled = false
         self.newcollectionBtn.addTarget(self, action: #selector(getImages), for: .touchUpInside)
@@ -45,7 +45,11 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         
         if let result = try? dataController.viewContext.fetch(fetchRequest){
             photoscache = result
-            print(result, "regfeg")
+            if photoscache.count == 0{
+                getImages()
+                print(result, "regfeg")
+            }
+            
         }
         
         // Do any additional setup after loading the view.
@@ -55,6 +59,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         self.collection.reloadData()
     }
     
@@ -62,6 +67,13 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         if photosArr?.photos.photo.count ?? 0 > 1{
             let randomPage = Int.random(in: 1..<(photosArr?.photos.pages)!)
             vtclient.getImages(latitude: lat, Longitude: lng, page: randomPage) { bool, error, data, images in
+                if bool == true{
+                    self.photosArr = data
+                    self.collection.reloadData()
+                }
+            }
+        }else{
+            vtclient.getImages(latitude: lat, Longitude: lng, page: 1) { bool, error, data, images in
                 if bool == true{
                     self.photosArr = data
                     self.collection.reloadData()
@@ -121,15 +133,16 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
 
 extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return photoscache.count//photosArr?.photos.photo.count ?? 0
+        return photosArr?.photos.photo.count ?? photoscache.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCell
         
-        vtclient.downloadImage(url: self.photoscache[indexPath.item].url_o ?? "", image: cell.img) { bool, error, image in
+        vtclient.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_o ?? "", image: cell.img) { bool, error, image in
             if bool == true{
                 cell.img = image
+                self.addImages(photos: self.photosArr!, newimg: image.image!)
                 self.newcollectionBtn.alpha = 1
                 self.newcollectionBtn.isEnabled = true
             }
@@ -139,7 +152,7 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        self.self.photoscache.remove(at: indexPath.item)
+        self.photosArr?.photos.photo.remove(at: indexPath.item)
         let photoToDelete = photo(at: indexPath)
         dataController.viewContext.delete(photoToDelete)
         try? dataController.viewContext.save()
@@ -150,6 +163,25 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     
     func photo(at indexPath: IndexPath) -> Photo {
         return photoscache[indexPath.item]
+    }
+    
+    func addImages(photos: _Data, newimg: UIImage){
+        if let p = photos.photos.photo as? [PhotoDetails]{
+            let image = Photo(context: self.dataController.viewContext)
+            for i in p{
+                image.id = i.id
+                image.owner = i.owner
+                image.title = i.title
+                image.url_o = i.url_o
+                image.pin = self.pin
+                
+                
+                self.pin.addToPhotos(image)
+                try? self.dataController.viewContext.save()
+                self.photoscache.insert(image, at: 0)
+
+            }
+        }
     }
     
 }
