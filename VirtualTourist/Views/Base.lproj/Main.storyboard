@@ -54,6 +54,12 @@
                                     <constraint firstAttribute="height" constant="234" id="c0X-bw-zqT"/>
                                 </constraints>
                             </mapView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No Images" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AFb-So-BKq">
+                                <rect key="frame" x="115.5" y="424" width="183" height="48"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ZJK-Vu-1eQ">
                                 <rect key="frame" x="0.0" y="234" width="414" height="662"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -112,11 +118,13 @@
                         <constraints>
                             <constraint firstItem="Dar-BV-5CE" firstAttribute="trailing" secondItem="ZJK-Vu-1eQ" secondAttribute="trailing" id="FpT-3d-7ca"/>
                             <constraint firstAttribute="bottom" secondItem="ZJK-Vu-1eQ" secondAttribute="bottom" id="MAc-g9-e7h"/>
+                            <constraint firstItem="AFb-So-BKq" firstAttribute="centerX" secondItem="5Xp-Pj-C7c" secondAttribute="centerX" id="O35-a9-TkH"/>
                             <constraint firstItem="ZJK-Vu-1eQ" firstAttribute="leading" secondItem="Dar-BV-5CE" secondAttribute="leading" id="Qab-OO-tpY"/>
                             <constraint firstItem="lDX-br-ECT" firstAttribute="leading" secondItem="Dar-BV-5CE" secondAttribute="leading" id="RPy-ZE-Q9F"/>
                             <constraint firstItem="lDX-br-ECT" firstAttribute="top" secondItem="5Xp-Pj-C7c" secondAttribute="top" id="RR2-Gd-cK3"/>
                             <constraint firstItem="6tj-QI-oXY" firstAttribute="bottom" secondItem="Dar-BV-5CE" secondAttribute="bottom" id="Rca-6b-qlJ"/>
                             <constraint firstItem="Dar-BV-5CE" firstAttribute="trailing" secondItem="6tj-QI-oXY" secondAttribute="trailing" id="Tw6-nj-kYN"/>
+                            <constraint firstItem="AFb-So-BKq" firstAttribute="centerY" secondItem="5Xp-Pj-C7c" secondAttribute="centerY" id="t0e-ey-zIX"/>
                             <constraint firstItem="ZJK-Vu-1eQ" firstAttribute="top" secondItem="lDX-br-ECT" secondAttribute="bottom" id="uaM-cc-vi5"/>
                             <constraint firstItem="6tj-QI-oXY" firstAttribute="leading" secondItem="Dar-BV-5CE" secondAttribute="leading" id="y9P-h3-z1B"/>
                             <constraint firstItem="lDX-br-ECT" firstAttribute="trailing" secondItem="Dar-BV-5CE" secondAttribute="trailing" id="ylk-ZA-XiQ"/>
@@ -127,6 +135,7 @@
                         <outlet property="collection" destination="ZJK-Vu-1eQ" id="PcE-X5-KJ2"/>
                         <outlet property="mapview" destination="lDX-br-ECT" id="th9-k0-c4F"/>
                         <outlet property="newcollectionBtn" destination="6tj-QI-oXY" id="4rt-JP-LAf"/>
+                        <outlet property="noimagesLbl" destination="AFb-So-BKq" id="ets-D3-RMS"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hld-BD-gEj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

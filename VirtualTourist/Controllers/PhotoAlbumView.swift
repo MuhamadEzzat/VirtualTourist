@@ -12,6 +12,7 @@ import CoreData
 class PhotoAlbumView: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var mapview: MKMapView!
+    @IBOutlet weak var noimagesLbl: UILabel!
     @IBOutlet weak var newcollectionBtn: UIButton!
     @IBOutlet weak var collection: UICollectionView!
     
@@ -28,7 +29,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(pin, "dsferfer")
+        
         self.newcollectionBtn.alpha = 0.5
         self.newcollectionBtn.isEnabled = false
         self.newcollectionBtn.addTarget(self, action: #selector(getImages), for: .touchUpInside)
@@ -38,7 +39,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         
         let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
         let predicate = NSPredicate(format: "pin == %@", self.pin)
-        print(predicate, "dsfewfq")
+
         fetchRequest.predicate = predicate
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
@@ -47,7 +48,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
             photoscache = result
             if photoscache.count == 0{
                 getImages()
-                print(result, "regfeg")
+                
             }
             
         }
@@ -75,8 +76,16 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         }else{
             vtclient.getImages(latitude: lat, Longitude: lng, page: 1) { bool, error, data, images in
                 if bool == true{
-                    self.photosArr = data
-                    self.collection.reloadData()
+                    if data?.photos.photo.count != 0{
+                        self.photosArr = data
+                        self.collection.reloadData()
+                        self.collection.alpha = 1
+                        self.noimagesLbl.alpha = 0
+                    }else{
+                        self.collection.alpha = 0
+                        self.noimagesLbl.alpha = 1
+                    }
+                    
                 }
             }
         }
