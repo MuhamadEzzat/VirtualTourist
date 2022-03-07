@@ -29,7 +29,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print(pin.photos, "dscdvevE")
         self.newcollectionBtn.alpha = 0.5
         self.newcollectionBtn.isEnabled = false
         self.newcollectionBtn.addTarget(self, action: #selector(getImages), for: .touchUpInside)
@@ -41,14 +41,18 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         let predicate = NSPredicate(format: "pin == %@", self.pin)
 
         fetchRequest.predicate = predicate
-        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        let sortDescriptor = NSSortDescriptor(key: "id", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
         if let result = try? dataController.viewContext.fetch(fetchRequest){
             photoscache = result
+            
             if photoscache.count == 0{
                 getImages()
                 
+            }else{
+                
+                print(result[0].imageData, "Sdvfdbvde")
             }
             
         }
@@ -59,10 +63,10 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        self.collection.reloadData()
-    }
+//    override func viewWillAppear(_ animated: Bool) {
+//        super.viewWillAppear(animated)
+//        self.collection.reloadData()
+//    }
     
     @objc func getImages(){
         if photosArr?.photos.photo.count ?? 0 > 1{
@@ -147,15 +151,27 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCell
-        
-        vtclient.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_o ?? "", image: cell.img) { bool, error, image in
-            if bool == true{
-                cell.img = image
-                self.addImages(photos: self.photosArr!, newimg: image.image!)
-                self.newcollectionBtn.alpha = 1
-                self.newcollectionBtn.isEnabled = true
+        switch self.photoscache.isEmpty{
+        case true:
+            vtclient.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_m ?? "", image: cell.img) { bool, error, data in
+                if bool == true{
+                    DispatchQueue.main.sync {
+                        cell.img.image = UIImage(data: data)
+                        self.addImages(photos: self.photosArr!, newimg: data, at: indexPath)
+                        self.newcollectionBtn.alpha = 1
+                        self.newcollectionBtn.isEnabled = true
+                    }
+                    
+                }
             }
+        case false:
+            cell.img.image = UIImage(data:self.photoscache[indexPath.row].imageData!)
+            self.newcollectionBtn.alpha = 1
+            self.newcollectionBtn.isEnabled = true
+        default:
+            print("Nothing to do!")
         }
+        
         
         return cell
     }
@@ -174,22 +190,20 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
         return photoscache[indexPath.item]
     }
     
-    func addImages(photos: _Data, newimg: UIImage){
+    func addImages(photos: _Data, newimg: Data, at indexpat: IndexPath){
         if let p = photos.photos.photo as? [PhotoDetails]{
             let image = Photo(context: self.dataController.viewContext)
-            for i in p{
-                image.id = i.id
-                image.owner = i.owner
-                image.title = i.title
-                image.url_o = i.url_o
-                image.pin = self.pin
+            image.id = p[indexpat.row].id
+            image.owner = p[indexpat.row].owner
+            image.title = p[indexpat.row].title
+            image.url_o = p[indexpat.row].url_m
+            image.pin = self.pin
+            image.imageData = newimg
                 
-                
-                self.pin.addToPhotos(image)
-                try? self.dataController.viewContext.save()
-                self.photoscache.insert(image, at: 0)
-
-            }
+            self.pin.addToPhotos(image)
+            try? self.dataController.viewContext.save()
+            self.photoscache.insert(image, at: 0)
+            print(self.photoscache, "Dsvdsv")
         }
     }
     

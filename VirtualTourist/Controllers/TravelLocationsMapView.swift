@@ -99,13 +99,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         
         //Save to Coredata
         addPintoCache(latitude: annotation.coordinate.latitude, Longitude: annotation.coordinate.longitude)
-        
-        vtclient.getImages(latitude: mabview.centerCoordinate.latitude, Longitude: mabview.centerCoordinate.longitude, page: 1, completion: { bool, error, photos, images in
-            guard let photos = photos else{
-                return
-            }
-            self.photos = photos
-        })
+
     }
     
     func addPintoCache(latitude: CLLocationDegrees, Longitude: CLLocationDegrees){
@@ -117,13 +111,6 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         pins.insert(pin, at: 0)
     }
     
-    func pin(lat : Double, lng: Double) -> Pin {
-        let pin = Pin(context: dataController.viewContext)
-        pin.lat = lat
-        pin.lng = lng
-        return pin
-    }
-    
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         let nextStoryboard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = nextStoryboard.instantiateViewController(withIdentifier: "PhotoAlbumView") as! PhotoAlbumView
@@ -131,8 +118,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         vc.photosArr = self.photos
         vc.lat = view.annotation?.coordinate.latitude ?? 0.0
         vc.lng = view.annotation?.coordinate.longitude ?? 0.0
-        vc.pin = pin(lat: view.annotation?.coordinate.latitude ?? 0.0, lng: view.annotation?.coordinate.longitude ?? 0.0)
-        
+        vc.pin = self.pins[1]
+        print(vc.pin, "Sdcvverve")
         vc.dataController = dataController
         
         self.navigationController?.pushViewController(vc, animated: true)

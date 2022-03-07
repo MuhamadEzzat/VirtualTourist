@@ -20,14 +20,14 @@ struct PhotoDetails:Codable{
     var id: String
     var title: String
     var owner: String
-    var url_o: String
+    var url_m: String
     
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decodeIfPresent(String.self, forKey: .id) ?? ""
         title = try values.decodeIfPresent(String.self, forKey: .title) ?? ""
         owner = try values.decodeIfPresent(String.self, forKey: .owner) ?? ""
-        url_o = try values.decodeIfPresent(String.self, forKey: .url_o) ?? ""
+        url_m = try values.decodeIfPresent(String.self, forKey: .url_m) ?? ""
     }
 }
  
