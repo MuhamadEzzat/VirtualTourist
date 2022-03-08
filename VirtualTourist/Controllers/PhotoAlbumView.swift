@@ -33,9 +33,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         self.newcollectionBtn.alpha = 0.5
         self.newcollectionBtn.isEnabled = false
         self.newcollectionBtn.addTarget(self, action: #selector(getImages), for: .touchUpInside)
-        mapview.delegate = self
-        let initialLocation = CLLocation(latitude: lat, longitude: lng)
-        centerMapOnLocation(location: initialLocation)
+        fillMapview()
         
         let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
         let predicate = NSPredicate(format: "pin == %@", self.pin)
@@ -49,16 +47,8 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
             
             if photoscache.count == 0{
                 getImages()
-                
-            }else{
-                
-                print(result[0].imageData, "Sdvfdbvde")
             }
-            
         }
-        
-        // Do any additional setup after loading the view.
-        fillMapview()
     }
     
     
@@ -69,6 +59,9 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
 //    }
     
     @objc func getImages(){
+        photoscache.removeAll()
+        photosArr?.photos.photo.removeAll()
+        print(photoscache.count, "dsfsgw")
         if photosArr?.photos.photo.count ?? 0 > 1{
             let randomPage = Int.random(in: 1..<(photosArr?.photos.pages)!)
             vtclient.getImages(latitude: lat, Longitude: lng, page: randomPage) { bool, error, data, images in
@@ -96,7 +89,10 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     }
     
     func fillMapview(){
-            
+        mapview.delegate = self
+        
+        let initialLocation = CLLocation(latitude: lat, longitude: lng)
+        centerMapOnLocation(location: initialLocation)
           
         var annotations = [MKPointAnnotation]()
             
@@ -142,7 +138,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
 
     
 }
-//tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .fade)
+
 
 extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -161,23 +157,21 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
                         self.newcollectionBtn.alpha = 1
                         self.newcollectionBtn.isEnabled = true
                     }
-                    
                 }
             }
         case false:
+            print(photoscache.count , "dsferf")
             cell.img.image = UIImage(data:self.photoscache[indexPath.row].imageData!)
             self.newcollectionBtn.alpha = 1
             self.newcollectionBtn.isEnabled = true
         default:
             print("Nothing to do!")
         }
-        
-        
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        self.photosArr?.photos.photo.remove(at: indexPath.item)
+        self.photoscache.remove(at: indexPath.item)
         let photoToDelete = photo(at: indexPath)
         dataController.viewContext.delete(photoToDelete)
         try? dataController.viewContext.save()

@@ -118,8 +118,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         vc.photosArr = self.photos
         vc.lat = view.annotation?.coordinate.latitude ?? 0.0
         vc.lng = view.annotation?.coordinate.longitude ?? 0.0
+        
         vc.pin = self.pins[1]
-        print(vc.pin, "Sdcvverve")
         vc.dataController = dataController
         
         self.navigationController?.pushViewController(vc, animated: true)
