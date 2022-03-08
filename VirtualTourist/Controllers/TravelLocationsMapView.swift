@@ -86,20 +86,25 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     }
 
     @objc func longPress(gestureRecognizer:UIGestureRecognizer){
-        if gestureRecognizer.state != .began{
-            return
-        }
-        
+//        if gestureRecognizer.state != .began{
+//            return
+//        }
         let touchPoint = gestureRecognizer.location(in: mabview)
         let newCoordinates = mabview.convert(touchPoint, toCoordinateFrom: mabview)
         let annotation = MKPointAnnotation()
         annotation.coordinate = newCoordinates
         self.anotationsArr?.append(annotation.coordinate)
-        mabview.addAnnotation(annotation)
         
-        //Save to Coredata
-        addPintoCache(latitude: annotation.coordinate.latitude, Longitude: annotation.coordinate.longitude)
-
+        
+        if gestureRecognizer.state == .began {
+            // add a PIN to the map
+            mabview.addAnnotation(annotation)
+        } else if gestureRecognizer.state == .changed {
+            // update the PIN to the new location
+        } else if gestureRecognizer.state == .ended {
+            // Save this PIN to CoreData
+            addPintoCache(latitude: annotation.coordinate.latitude, Longitude: annotation.coordinate.longitude)
+        }
     }
     
     func addPintoCache(latitude: CLLocationDegrees, Longitude: CLLocationDegrees){
@@ -118,8 +123,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         vc.photosArr = self.photos
         vc.lat = view.annotation?.coordinate.latitude ?? 0.0
         vc.lng = view.annotation?.coordinate.longitude ?? 0.0
-        
-        vc.pin = self.pins[1]
+        print(self.pins, "dsvreve")
+        vc.pin = self.pins.last
         vc.dataController = dataController
         
         self.navigationController?.pushViewController(vc, animated: true)
