@@ -47,39 +47,43 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         if let result = try? dataController.viewContext.fetch(fetchRequest){
             photoscache = result
             if photoscache.count == 0{
-                getImages()
+                getImagesForFirstTime()
+            }
+        }
+    }
+    
+    func getImagesForFirstTime(){
+        vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: 1) { bool, error, data in
+            if bool == true{
+                if data?.photos.photo.count != 0{
+                    self.photosArr = data
+                    self.collection.reloadData()
+                    self.collection.alpha = 1
+                    self.noimagesLbl.alpha = 0
+                }else{
+                    self.collection.alpha = 0
+                    self.noimagesLbl.alpha = 1
+                }
+                
             }
         }
     }
     
     @objc func getImages(){
         // Remove photos from cache
-        
+        for photo in photoscache{
+            dataController.viewContext.delete(photo)
+        }
+        try? dataController.viewContext.save()
         self.photoscache.removeAll()
-        photosArr?.photos.photo.removeAll()
+//        photosArr?.photos.photo.removeAll()
         
-        if photosArr?.photos.photo.count ?? 0 > 1{
-            let randomPage = Int.random(in: 1..<(photosArr?.photos.pages)!)
-            vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: randomPage) { bool, error, data in
-                if bool == true{
-                    self.photosArr = data
-                    self.collection.reloadData()
-                }
-            }
-        }else{
-            vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: 1) { bool, error, data in
-                if bool == true{
-                    if data?.photos.photo.count != 0{
-                        self.photosArr = data
-                        self.collection.reloadData()
-                        self.collection.alpha = 1
-                        self.noimagesLbl.alpha = 0
-                    }else{
-                        self.collection.alpha = 0
-                        self.noimagesLbl.alpha = 1
-                    }
-                    
-                }
+        let randomPage = Int.random(in: 1..<(photosArr?.photos.pages ?? 0) )
+        vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: randomPage) { bool, error, data in
+            if bool == true{
+                self.photosArr?.photos.photo.removeAll()
+                self.photosArr = data
+                self.collection.reloadData()
             }
         }
     }
@@ -183,10 +187,10 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
     func addImages(photos: _Data, newimg: Data, at indexpat: IndexPath){
         if let p = photos.photos.photo as? [PhotoDetails]{
             let image = Photo(context: self.dataController.viewContext)
-            image.id = p[indexpat.row].id
-            image.owner = p[indexpat.row].owner
-            image.title = p[indexpat.row].title
-            image.url_o = p[indexpat.row].url_m
+            image.id = p[indexpat.item].id
+            image.owner = p[indexpat.item].owner
+            image.title = p[indexpat.item].title
+            image.url_o = p[indexpat.item].url_m
             image.pin = self.pin
             image.imageData = newimg
                 
