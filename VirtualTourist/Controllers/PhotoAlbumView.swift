@@ -29,7 +29,7 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(pin.photos, "dscdvevE")
+        print(pin.lat, pin.lng, "dscdvevE")
         self.newcollectionBtn.alpha = 0.5
         self.newcollectionBtn.isEnabled = false
         self.newcollectionBtn.addTarget(self, action: #selector(getImages), for: .touchUpInside)
@@ -39,39 +39,35 @@ class PhotoAlbumView: UIViewController, MKMapViewDelegate {
         let predicate = NSPredicate(format: "pin == %@", self.pin)
 
         fetchRequest.predicate = predicate
+        
+        print(fetchRequest.predicate, "dfsgsd")
         let sortDescriptor = NSSortDescriptor(key: "id", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
         if let result = try? dataController.viewContext.fetch(fetchRequest){
             photoscache = result
-            
             if photoscache.count == 0{
                 getImages()
             }
         }
     }
     
-    
-    
-//    override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//        self.collection.reloadData()
-//    }
-    
     @objc func getImages(){
-        photoscache.removeAll()
+        // Remove photos from cache
+        
+        self.photoscache.removeAll()
         photosArr?.photos.photo.removeAll()
-        print(photoscache.count, "dsfsgw")
+        
         if photosArr?.photos.photo.count ?? 0 > 1{
             let randomPage = Int.random(in: 1..<(photosArr?.photos.pages)!)
-            vtclient.getImages(latitude: lat, Longitude: lng, page: randomPage) { bool, error, data, images in
+            vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: randomPage) { bool, error, data in
                 if bool == true{
                     self.photosArr = data
                     self.collection.reloadData()
                 }
             }
         }else{
-            vtclient.getImages(latitude: lat, Longitude: lng, page: 1) { bool, error, data, images in
+            vtclient.getImages(latitude: self.pin.lat, Longitude: self.pin.lng, page: 1) { bool, error, data in
                 if bool == true{
                     if data?.photos.photo.count != 0{
                         self.photosArr = data
@@ -149,6 +145,7 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCell
         switch self.photoscache.isEmpty{
         case true:
+            print(photosArr?.photos.photo.count, "ffdfdfd")
             vtclient.downloadImage(url: self.photosArr?.photos.photo[indexPath.item].url_m ?? "", image: cell.img) { bool, error, data in
                 if bool == true{
                     DispatchQueue.main.sync {
@@ -161,7 +158,7 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
             }
         case false:
             print(photoscache.count , "dsferf")
-            cell.img.image = UIImage(data:self.photoscache[indexPath.row].imageData!)
+            cell.img.image = UIImage(data:self.photoscache[indexPath.item].imageData!)
             self.newcollectionBtn.alpha = 1
             self.newcollectionBtn.isEnabled = true
         default:
@@ -175,7 +172,6 @@ extension PhotoAlbumView: UICollectionViewDataSource, UICollectionViewDelegate{
         let photoToDelete = photo(at: indexPath)
         dataController.viewContext.delete(photoToDelete)
         try? dataController.viewContext.save()
-        photoscache.remove(at: indexPath.row)
         collection.deleteItems(at: [indexPath])
         collection.reloadData()
     }

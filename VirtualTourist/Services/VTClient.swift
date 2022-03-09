@@ -12,7 +12,7 @@ class VTClient{
         
     init() {}
     
-    func getImages(latitude: Double, Longitude: Double, page:Int,completion: @escaping (Bool, Error?, _Data?, [UIImage]?) -> Void){
+    func getImages(latitude: Double, Longitude: Double, page:Int,completion: @escaping (Bool, Error?, _Data?) -> Void){
         let request = URLRequest(url: URL(string: "https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=7499f896ac0201eb6f8be76d0fae523d&lat=\(latitude)&lon=\(Longitude)&format=json&nojsoncallback=1&extras=url_m&per_page=20&page=\(page)")!)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
@@ -27,13 +27,11 @@ class VTClient{
                 let model = try decoder.decode(_Data.self, from: data!)
                 
                 DispatchQueue.main.async {
-                    completion(true, nil, model, nil)
-                    
-                    // Save Images in Coredata
+                    completion(true, nil, model)
                 }
                 
             }catch{
-                completion(false, nil, nil, nil)
+                completion(false, nil, nil)
             }
         }
         task.resume()

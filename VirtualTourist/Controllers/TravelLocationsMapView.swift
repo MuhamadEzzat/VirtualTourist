@@ -17,21 +17,16 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     var pins : [Pin] = []
     let vtclient = VTClient()
     var anotationsArr : [CLLocationCoordinate2D]? = []
-    var photos : _Data?
     var pin : Pin!
     var cachePhotos : [Photo]! = []
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        mabview.delegate = self
-        print(dataController.viewContext, "dsfsdfs")
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(gestureRecognizer:)))
                                                              
         gestureRecognizer.delegate = self
         mabview.addGestureRecognizer(gestureRecognizer)
-            
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -40,7 +35,10 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
     }
     
     func fillMapview(){
-        
+//        for pin in pins{
+//            dataController.viewContext.delete(pin)
+//        }
+//        try? dataController.viewContext.save()
         var annotations = [MKPointAnnotation]()
         
         let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -116,15 +114,23 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate, UIGestureReco
         pins.insert(pin, at: 0)
     }
     
+    
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        
         let nextStoryboard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = nextStoryboard.instantiateViewController(withIdentifier: "PhotoAlbumView") as! PhotoAlbumView
 
-        vc.photosArr = self.photos
-        vc.lat = view.annotation?.coordinate.latitude ?? 0.0
-        vc.lng = view.annotation?.coordinate.longitude ?? 0.0
-        print(self.pins, "dsvreve")
-        vc.pin = self.pins.last
+        for item in self.pins {
+            if let lat = view.annotation?.coordinate.latitude, let lng = view.annotation?.coordinate.longitude {
+                if item.lat == lat && item.lng == lng{
+                    vc.pin = item
+                    break
+                }
+            }
+        }
+        
+        
+        print(vc.pin.lat, vc.pin.lng, "FdvervrE")
         vc.dataController = dataController
         
         self.navigationController?.pushViewController(vc, animated: true)
